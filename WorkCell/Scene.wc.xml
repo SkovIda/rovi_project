@@ -32,6 +32,7 @@
 	<Frame name="Bottle" refframe="Table" type="Movable">
 		<RPY> -90 0 90 </RPY>
 		<Pos> 0 0.474 0.21 </Pos>
+		<Property name="ShowFrameAxis">true</Property>
 		<Drawable name="Bottle" refframe="Bottle">
 			<Polytope file="parts/bottle" />
 		</Drawable>
@@ -40,7 +41,6 @@
 	<Frame name="GraspTarget" refframe="Bottle" type="Fixed" daf="true">
 		<RPY> 0 -90 0 </RPY>
 		<Pos> 0 0 0 </Pos>
-		<Property name="ShowFrameAxis">true</Property>
 	</Frame>
 
 	<Frame name="Square" refframe="Table" type="Movable" daf="true">
