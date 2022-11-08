@@ -1,4 +1,3 @@
-
 #include <rw/invkin.hpp>
 #include <rw/rw.hpp>
 #include <rwlibs/proximitystrategies/ProximityStrategyFactory.hpp>
@@ -52,15 +51,15 @@ int main (int argc, char** argv)
 {
     // load workcell
     rw::models::WorkCell::Ptr wc =
-        rw::loaders::WorkCellLoader::Factory::load ("../../../WorkCell/Scene.wc.xml");
+        rw::loaders::WorkCellLoader::Factory::load ("../WorkCell/Scene.wc.xml");
     if (wc.isNull ()) {
         RW_THROW ("COULD NOT LOAD scene... check path!");
     }
 
     // find relevant frames
-    MovableFrame::Ptr cylinderFrame = wc->findFrame< MovableFrame > ("Cylinder");
+    MovableFrame::Ptr cylinderFrame = wc->findFrame< MovableFrame > ("Bottle");
     if (cylinderFrame.isNull ()) {
-        RW_THROW ("COULD not find movable frame Cylinder ... check model");
+        RW_THROW ("COULD not find movable frame Bottle ... check model");
     }
 
     rw::models::SerialDevice::Ptr robotUR5 = wc->findDevice< rw::models::SerialDevice > ("UR-6-85-5-A");
@@ -79,8 +78,8 @@ int main (int argc, char** argv)
     for (double rollAngle = 0; rollAngle < 360.0;
          rollAngle += 1.0) {    // for every degree around the roll axis
 
-        cylinderFrame->moveTo (Transform3D<> (Vector3D<> (cylinderFrame->getTransform (state).P ()),
-                                              RPY<> (rollAngle * Deg2Rad, 0, 0)),
+        cylinderFrame->setTransform (Transform3D<> (Vector3D<> (cylinderFrame->getTransform (state).P ()),
+                                              RPY<> (rollAngle * Deg2Rad, 0, 90 * Deg2Rad)),
                                state);
 
         std::vector< Q > solutions =
@@ -110,7 +109,7 @@ int main (int argc, char** argv)
         time += 0.01;
     }
 
-    rw::loaders::PathLoader::storeTimedStatePath (*wc, tStatePath, "../scene/visu.rwplay");
+    rw::loaders::PathLoader::storeTimedStatePath (*wc, tStatePath, "../visu.rwplay");
 
     return 0;
 }
