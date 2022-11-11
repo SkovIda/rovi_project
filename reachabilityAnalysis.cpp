@@ -81,7 +81,8 @@ int main (int argc, char** argv)
     std::vector< Q > collisionFreeSolutions;
 
     graspTargetFrame->setTransform (Transform3D<> (Vector3D<> (graspTargetFrame->getTransform (state).P ()),
-                                              RPY<> (0, 90 * Deg2Rad, 0)),
+                                              RPY<> (-90* Deg2Rad, 90 * Deg2Rad, 0)), 
+                                              
                                state);
 
 
