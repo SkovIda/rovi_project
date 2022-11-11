@@ -19,7 +19,7 @@
 	<Frame name="GripperAttatch" refframe="UR-6-85-5-A.TCP" type="Fixed">
 		<RPY>0 0 0</RPY>
 		<Pos>0 0 0.0725</Pos>
-		<Property name="ShowFrameAxis">true</Property>
+		<!-- <Property name="ShowFrameAxis">true</Property> -->
 	</Frame>
 	<Include file="wsg50/wsg50.xml"/>
 
@@ -32,15 +32,16 @@
 	<Frame name="Bottle" refframe="Table" type="Movable">
 		<RPY> -90 0 90 </RPY>
 		<Pos> 0 0.474 0.21 </Pos>
-		<Property name="ShowFrameAxis">true</Property>
+		<!-- <Property name="ShowFrameAxis">true</Property> -->
 		<Drawable name="Bottle" refframe="Bottle">
 			<Polytope file="parts/bottle" />
 		</Drawable>
 	</Frame>
 
-	<Frame name="GraspTarget" refframe="Bottle" type="Fixed" daf="true">
-		<RPY> 0 -90 0 </RPY>
+	<Frame name="GraspTarget" refframe="Bottle" type="Movable" daf="true">
+		<RPY> 0 0 0 </RPY>
 		<Pos> 0 0 0 </Pos>
+		<Property name="ShowFrameAxis">true</Property>
 	</Frame>
 
 	<Frame name="Square" refframe="Table" type="Movable" daf="true">

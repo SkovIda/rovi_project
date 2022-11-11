@@ -67,6 +67,11 @@ int main (int argc, char** argv)
         RW_THROW ("COULD not find device UR5 ... check model");
     }
 
+    MovableFrame::Ptr graspTargetFrame = wc->findFrame< MovableFrame > ("GraspTarget");
+    if (graspTargetFrame.isNull ()) {
+        RW_THROW ("COULD not find movable frame GraspTarget ... check model");
+    }
+
     // create Collision Detector
     rw::proximity::CollisionDetector detector (
         wc, rwlibs::proximitystrategies::ProximityStrategyFactory::makeDefaultCollisionStrategy ());
@@ -74,6 +79,11 @@ int main (int argc, char** argv)
     // get the default state
     State state = wc->getDefaultState ();
     std::vector< Q > collisionFreeSolutions;
+
+    graspTargetFrame->setTransform (Transform3D<> (Vector3D<> (graspTargetFrame->getTransform (state).P ()),
+                                              RPY<> (0, 90 * Deg2Rad, 0)),
+                               state);
+
 
     for (double rollAngle = 0; rollAngle < 360.0;
          rollAngle += 1.0) {    // for every degree around the roll axis
