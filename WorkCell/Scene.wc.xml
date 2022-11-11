@@ -40,7 +40,7 @@
 
 	<Frame name="GraspTarget" refframe="Bottle" type="Movable" daf="true">
 		<RPY> 0 0 0 </RPY>
-		<Pos> 0 0.028 0 </Pos>
+		<Pos> 0 0 0 </Pos>
 		<Property name="ShowFrameAxis">true</Property>
 	</Frame>
 

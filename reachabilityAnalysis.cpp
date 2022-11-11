@@ -80,7 +80,7 @@ int main (int argc, char** argv)
     State state = wc->getDefaultState ();
     std::vector< Q > collisionFreeSolutions;
 
-    graspTargetFrame->setTransform (Transform3D<> (Vector3D<> (graspTargetFrame->getTransform (state).P ()),
+    graspTargetFrame->setTransform (Transform3D<> (Vector3D<> (graspTargetFrame->getTransform (state).P () + Vector3D<> (0, 0.028, 0)),
                                               RPY<> (-90* Deg2Rad, 90 * Deg2Rad, 0)), 
                                               
                                state);
