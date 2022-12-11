@@ -88,8 +88,8 @@ int main (int argc, char** argv)
     }
 
     // find relevant frames
-    MovableFrame::Ptr cylinderFrame = wc->findFrame< MovableFrame > ("Bottle");
-    if (cylinderFrame.isNull ()) {
+    MovableFrame::Ptr bottleFrame = wc->findFrame< MovableFrame > ("Bottle");
+    if (bottleFrame.isNull ()) {
         RW_THROW ("COULD not find movable frame Bottle ... check model");
     }
 
@@ -121,6 +121,7 @@ int main (int argc, char** argv)
     //                                           RPY<> (-90 * Deg2Rad, 90 * Deg2Rad, 0)),
     //                            state);
 
+    // Grasping the bottle:
     std::vector<RPY<>> graspStyles = {RPY<> (0, 90 * Deg2Rad, 0),RPY<> (-90 * Deg2Rad, 90 * Deg2Rad, 0)};
 
     rw::trajectory::TimedStatePath tStatePath;
@@ -133,7 +134,7 @@ int main (int argc, char** argv)
                                               graspStyles[i]),
                                state);
         
-        collisionFreeSolutions = getCollisionFreeSolutions(state, graspTargetFrame, cylinderFrame, robotUR5, wc);
+        collisionFreeSolutions = getCollisionFreeSolutions(state, graspTargetFrame, bottleFrame, robotUR5, wc);
 
         std::cout << "Current position of the robot vs object to be grasped has: "
               << collisionFreeSolutions.size () << " collision-free inverse kinematics solutions!"
@@ -145,10 +146,12 @@ int main (int argc, char** argv)
         }
     }
 
+    rw::loaders::PathLoader::storeTimedStatePath (*wc, tStatePath, "../visu.rwplay");
+
     // for (double rollAngle = 0; rollAngle < 360.0;
     //      rollAngle += 1.0) {    // for every degree around the roll axis
 
-    //     cylinderFrame->setTransform (Transform3D<> (Vector3D<> (cylinderFrame->getTransform (state).P ()),
+    //     bottleFrame->setTransform (Transform3D<> (Vector3D<> (bottleFrame->getTransform (state).P ()),
     //                                           RPY<> (rollAngle * Deg2Rad, 0, 90 * Deg2Rad)),
     //                            state);
 
@@ -179,7 +182,7 @@ int main (int argc, char** argv)
     //     time += 0.01;
     // }
 
-    rw::loaders::PathLoader::storeTimedStatePath (*wc, tStatePath, "../visu.rwplay");
+    // rw::loaders::PathLoader::storeTimedStatePath (*wc, tStatePath, "../visu.rwplay");
 
     // std::vector<std::string> grasping_style_names = {"Grasp bottle from the top", "Grasp bottle from the side"};
     // std::vector< Q > collisionFreeSolutions_GraspTop;
@@ -205,7 +208,7 @@ int main (int argc, char** argv)
     //     for (double rollAngle = 0; rollAngle < 360.0;
     //     rollAngle += 1.0) {    // for every degree around the roll axis
 
-    //         cylinderFrame->setTransform (Transform3D<> (Vector3D<> (cylinderFrame->getTransform (state).P ()),
+    //         bottleFrame->setTransform (Transform3D<> (Vector3D<> (bottleFrame->getTransform (state).P ()),
     //                                             RPY<> (rollAngle * Deg2Rad, 0, 90 * Deg2Rad)),
     //                             state);
 

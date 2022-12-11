@@ -44,6 +44,12 @@
 		<Property name="ShowFrameAxis">true</Property>
 	</Frame>
 
+	<Frame name="PlaceTarget" refframe="Table" type="Movable" daf="true">
+		<RPY> -90 0 90 </RPY>
+		<Pos> 0.3 -0.474 0.21 </Pos>
+		<Property name="ShowFrameAxis">true</Property>
+	</Frame>
+
 	<Frame name="Square" refframe="Table" type="Movable" daf="true">
 		<RPY> -90 0 90 </RPY>
 		<Pos> 0.25 0.474 0.150</Pos>
