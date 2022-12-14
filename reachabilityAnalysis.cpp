@@ -11,6 +11,22 @@
 using namespace rw::kinematics;
 using namespace rw::math;
 
+/**
+ * This code is heavily inspired/copied from the solution provided for Programming Exercise 5.
+ * The parts, that were not copied from the solution for Programming Exercise 5, was by Ida Blirup Skov
+ */
+
+
+/**
+ * @brief Get the configuration of the robot for a given pose of the TCP.
+ * This function is a copy of a function provided in the solution for Programming Exercise 5
+ * @param nameGoal 
+ * @param nameTcp 
+ * @param robot 
+ * @param wc 
+ * @param state 
+ * @return std::vector< Q > Configuration of the robot
+ */
 std::vector< Q > getConfigurations (const std::string nameGoal, const std::string nameTcp,
                                     rw::models::SerialDevice::Ptr robot,
                                     rw::models::WorkCell::Ptr wc, State& state)
@@ -50,7 +66,21 @@ std::vector< Q > getConfigurations (const std::string nameGoal, const std::strin
     return closedFormSovler->solve (targetAt, state);
 }
 
-std::vector< Q > getCollisionFreeSolutions(State _state, MovableFrame::Ptr _graspTargetFrame, MovableFrame::Ptr _bottleFrame, rw::models::SerialDevice::Ptr _robotUR5, rw::models::WorkCell::Ptr _wc)
+
+/**
+ * @brief Get the Collision Free Solutions of the robot for every degree around the roll axis.
+ * The content of this function is almost an exact copy of the solution provided for Programming Exercise 5, except some small changes made by Ida Blirup Skov
+ * @param _state 
+ * @param _graspTargetFrame 
+ * @param _bottleFrame 
+ * @param _robotUR5 
+ * @param _wc 
+ * @return std::vector< Q > 
+ */
+std::vector< Q > getCollisionFreeSolutions(State _state, MovableFrame::Ptr _graspTargetFrame,
+                                        MovableFrame::Ptr _bottleFrame,
+                                        rw::models::SerialDevice::Ptr _robotUR5,
+                                        rw::models::WorkCell::Ptr _wc)
 {
     std::vector< Q > _collisionFreeSolutions;
     // create Collision Detector
@@ -62,7 +92,7 @@ std::vector< Q > getCollisionFreeSolutions(State _state, MovableFrame::Ptr _gras
 
         _bottleFrame->setTransform (Transform3D<> (Vector3D<> (_bottleFrame->getTransform (_state).P ()),
                                               RPY<> (rollAngle * Deg2Rad, 0, 90 * Deg2Rad)),
-                               _state);
+                               _state);     // Some small changes were made to the input arguments of this function call.
 
         std::vector< Q > solutions =
             getConfigurations ("GraspTarget", "GraspTCP", _robotUR5, _wc, _state);
@@ -79,38 +109,6 @@ std::vector< Q > getCollisionFreeSolutions(State _state, MovableFrame::Ptr _gras
     }
     return _collisionFreeSolutions;
 }
-
-
-// std::vector< Q > getCollisionFreePlaceSolutions(State _state, MovableFrame::Ptr _placeFrame, rw::models::SerialDevice::Ptr _robotUR5, rw::models::WorkCell::Ptr _wc)
-// {
-//     std::vector< Q > _collisionFreeSolutions;
-//     // create Collision Detector
-//     rw::proximity::CollisionDetector _detector (
-//         _wc, rwlibs::proximitystrategies::ProximityStrategyFactory::makeDefaultCollisionStrategy ());
-
-//     for (double rollAngle = 0; rollAngle < 360.0;
-//          rollAngle += 1.0) {    // for every degree around the roll axis
-
-//         _placeFrame->setTransform (Transform3D<> (Vector3D<> (_placeFrame->getTransform (_state).P ()),
-//                                               RPY<> (rollAngle * Deg2Rad, 0, 90 * Deg2Rad)),
-//                                _state);
-
-//         std::vector< Q > solutions =
-//             getConfigurations ("PlaceTarget", "GraspTCP", _robotUR5, _wc, _state);
-
-//         for (unsigned int i = 0; i < solutions.size (); i++) {
-//             // set the robot in that configuration and check if it is in collision
-//             _robotUR5->setQ (solutions[i], _state);
-
-//             if (!_detector.inCollision (_state)) {
-//                 _collisionFreeSolutions.push_back (solutions[i]);    // save it
-//                 break;                                              // we only need one
-//             }
-//         }
-//     }
-//     return _collisionFreeSolutions;
-// }
-
 
 
 int main (int argc, char** argv)
@@ -143,67 +141,55 @@ int main (int argc, char** argv)
         RW_THROW ("COULD not find movable frame URReference ... check model");
     }
 
-    // MovableFrame::Ptr placeBottleFrame = wc->findFrame< MovableFrame > ("PlaceTarget");
-    // if (placeBottleFrame.isNull ()) {
-    //     RW_THROW ("COULD not find movable frame PlaceTarget ... check model");
-    // }
-
-    // // create Collision Detector
-    // rw::proximity::CollisionDetector detector (
-    //     wc, rwlibs::proximitystrategies::ProximityStrategyFactory::makeDefaultCollisionStrategy ());
-
-    // // Save the number of collision free solitions:
-    // for all robot base positions:
-    // For the two different grasping styles: Grasp bottle from the side and grasp bottle from the top
-    // For both the 'pick area' and the 'place area'
+    /**
+     * Save the number of collision free solutions
+     * For all robot base positions:
+     * Number of collision free solutions for the two different grasping styles: Grasp bottle from the side and grasp bottle from the top 
+     * Number of collision free solutions for both the 'pick area' and the 'place area'
+     **/
     std::ofstream collisionfree_solutions_wrt_basePose;
     collisionfree_solutions_wrt_basePose.open("reachability_analysis_collisionfree_solutions.csv");
     // Write headers of the .csv output file:
     collisionfree_solutions_wrt_basePose << "xPos_idx,yPos_idx,Pick_GraspStyle_side,Pick_GraspStyle_top,Place_GraspStyle_side,Place_GraspStyle_top\n";
 
+
     // get the default state
     State state = wc->getDefaultState ();
     std::vector< Q > collisionFreeSolutions;
 
-    // Move BaseFrame of the UR5 robot:
+    // Move the BaseFrame of the UR5 robot to the first base position used to test the reachability:
     robotBaseFrame->setTransform (Transform3D<> (Vector3D<> (robotBaseFrame->getTransform (state).P () + Vector3D<> (-0.3, -0.2, 0)),
                                               RPY<> (0, 0, 0)),
                                state);
 
-
     //////////// Reachability analysis of the Pick task:
-    // Grasping styles for grasping the bottle:
+    // Grasping styles for grasping the bottle: [Grasp from the side, Grasp from the top]
     std::vector<RPY<>> graspStyles = {RPY<> (0, 90 * Deg2Rad, 0),RPY<> (-90 * Deg2Rad, 90 * Deg2Rad, 0)};
-
-    // // Comment this in to perform reachability analysis of the Place task:
-    // // Move bottleFrame to the center of the place area: <RPY> -90 0 90 </RPY> <Pos> 0.3 -0.474 0.21 </Pos>
-    // bottleFrame->setTransform (Transform3D<> (Vector3D<> (bottleFrame->getTransform (state).P () + Vector3D<> (0.3, -0.948, 0)),
-    //                                         RPY<> (0, 0, 90 * Deg2Rad)),
-    //                         state);
 
     graspTargetFrame->setTransform (Transform3D<> (Vector3D<> (graspTargetFrame->getTransform (state).P () + Vector3D<> (0, 0.028, 0)),
                                               RPY<> (0, 0, 0)),
                                state);
 
+    // Init objects to save a timed state path of the robot to enable replay of it in RobWorkStudio:
     rw::trajectory::TimedStatePath tStatePath;
     double time = 0;
     
+    // Move the base of the robot along positions on a grid with dimensions=(n_xPos X n_yPos):
     int n_xPos = 7;
     int n_yPos = 5;
-    // double xIncrement = 0.1;
-    // double yIncrement = 0.1;
+
     double pose_translation_stepsize = 0.1;
     double yPos_range = 0.4;
-    std::cout << "Move Base:\n";
+
     for(int x_idx = 0; x_idx < n_xPos; x_idx++){
         for(int y_idx = 0; y_idx < n_yPos; y_idx++){
             std::cout << "Move base: Pos_idx = [" << x_idx << "," << y_idx << "]\n";
-            collisionfree_solutions_wrt_basePose << x_idx << "," << y_idx;
-            // Do stuff HERE:
-            for( unsigned int i = 0; i < graspStyles.size(); i++)
+            collisionfree_solutions_wrt_basePose << x_idx << "," << y_idx;  // Write grid index to .csv file
+
+            ////////////// Reachability analysis of the Pick task:
+            for( unsigned int i = 0; i < graspStyles.size(); i++)   // For each grasping possibility:
             {
-                // Reachability Analysis for Grasping Task:
-                // set the graspTargetFrame to grasp the bottle from the side and from the top:
+                // set the graspTargetFrame to grasp the bottle from the side or from the top:
                 graspTargetFrame->setTransform (Transform3D<> (Vector3D<> (graspTargetFrame->getTransform (state).P () + Vector3D<> (0, 0, 0)),
                                                     graspStyles[i]),
                                     state);
@@ -214,8 +200,10 @@ int main (int argc, char** argv)
                 //     << collisionFreeSolutions.size () << " collision-free inverse kinematics solutions!"
                 //     << std::endl;
 
+                // Write number of collision free solutions to .csv file
                 collisionfree_solutions_wrt_basePose << "," << collisionFreeSolutions.size ();
 
+                // Add collision free solutions to replay file:
                 for (unsigned int i = 0; i < collisionFreeSolutions.size (); i++) {
                 robotUR5->setQ (collisionFreeSolutions[i], state);
                 tStatePath.push_back (rw::trajectory::TimedState (time, state));
@@ -223,13 +211,13 @@ int main (int argc, char** argv)
                 }
             }
 
-            ////////////// Reachability analysis of the Place task:
             // Move bottleFrame to the center of the place area (Position of this in TableFrame is approx.: (0.3 -0.474 0.21)
             bottleFrame->setTransform (Transform3D<> (Vector3D<> (bottleFrame->getTransform (state).P () + Vector3D<> (0.3, -0.948, 0)),
                                                     RPY<> (0, 0, 90 * Deg2Rad)),
                                     state);
 
-            for( unsigned int i = 0; i < graspStyles.size(); i++)
+            ////////////// Reachability analysis of the Place task:
+            for( unsigned int i = 0; i < graspStyles.size(); i++)   // For each grasping possibility:
             {
                 // Reachability Analysis for Grasping Task:
                 // set the graspTargetFrame to grasp the bottle from the side and from the top:
@@ -252,6 +240,7 @@ int main (int argc, char** argv)
                 }
             }
 
+            
             collisionfree_solutions_wrt_basePose <<  "\n";
 
             // Move bottleFrame back to the pick area (Position of this in TableFrame is approx.: (0 0.474 0.21)
@@ -272,92 +261,6 @@ int main (int argc, char** argv)
     collisionfree_solutions_wrt_basePose.close();
 
     rw::loaders::PathLoader::storeTimedStatePath (*wc, tStatePath, "../visu.rwplay");
-
-    // // graspTargetFrame to grasp the bottle from the side:
-    // graspTargetFrame->setTransform (Transform3D<> (Vector3D<> (graspTargetFrame->getTransform (state).P () + Vector3D<> (0, 0.028, 0)),
-    //                                           RPY<> (0, 90 * Deg2Rad, 0)),
-    //                            state);
-
-    // // graspTargetFrame to grasp the bottle from the top:
-    // graspTargetFrame->setTransform (Transform3D<> (Vector3D<> (graspTargetFrame->getTransform (state).P () + Vector3D<> (0, 0.028, 0)),
-    //                                           RPY<> (-90 * Deg2Rad, 90 * Deg2Rad, 0)),
-    //                            state);
-
-
-
-// /////////////////////////////////////////////////////////////////////////////////////////////
-//     //////////// Reachability analysis of the Pick task:
-//     // Grasping styles for grasping the bottle:
-//     std::vector<RPY<>> graspStyles = {RPY<> (0, 90 * Deg2Rad, 0),RPY<> (-90 * Deg2Rad, 90 * Deg2Rad, 0)};
-
-//     // // Comment this in to perform reachability analysis of the Place task:
-//     // // Move bottleFrame to the center of the place area: <RPY> -90 0 90 </RPY> <Pos> 0.3 -0.474 0.21 </Pos>
-//     // bottleFrame->setTransform (Transform3D<> (Vector3D<> (bottleFrame->getTransform (state).P () + Vector3D<> (0.3, -0.948, 0)),
-//     //                                         RPY<> (0, 0, 90 * Deg2Rad)),
-//     //                         state);
-
-//     graspTargetFrame->setTransform (Transform3D<> (Vector3D<> (graspTargetFrame->getTransform (state).P () + Vector3D<> (0, 0.028, 0)),
-//                                               RPY<> (0, 0, 0)),
-//                                state);
-
-//     rw::trajectory::TimedStatePath tStatePath;
-//     double time = 0;
-
-//     for( unsigned int i = 0; i < graspStyles.size(); i++)
-//     {
-//         // Reachability Analysis for Grasping Task:
-//         // set the graspTargetFrame to grasp the bottle from the side and from the top:
-//         graspTargetFrame->setTransform (Transform3D<> (Vector3D<> (graspTargetFrame->getTransform (state).P () + Vector3D<> (0, 0, 0)),
-//                                               graspStyles[i]),
-//                                state);
-        
-//         collisionFreeSolutions = getCollisionFreeSolutions(state, graspTargetFrame, bottleFrame, robotUR5, wc);
-
-//         std::cout << "Current position of the robot vs object to be grasped has: "
-//               << collisionFreeSolutions.size () << " collision-free inverse kinematics solutions!"
-//               << std::endl;
-//         for (unsigned int i = 0; i < collisionFreeSolutions.size (); i++) {
-//         robotUR5->setQ (collisionFreeSolutions[i], state);
-//         tStatePath.push_back (rw::trajectory::TimedState (time, state));
-//         time += 0.01;
-//         }
-//     }
-
-//     ////////////// Reachability analysis of the Place task:
-//     // Move bottleFrame to the center of the place area (Position of this in TableFrame is approx.: (0.3 -0.474 0.21)
-//     bottleFrame->setTransform (Transform3D<> (Vector3D<> (bottleFrame->getTransform (state).P () + Vector3D<> (0.3, -0.948, 0)),
-//                                             RPY<> (0, 0, 90 * Deg2Rad)),
-//                             state);
-
-//     for( unsigned int i = 0; i < graspStyles.size(); i++)
-//     {
-//         // Reachability Analysis for Grasping Task:
-//         // set the graspTargetFrame to grasp the bottle from the side and from the top:
-//         graspTargetFrame->setTransform (Transform3D<> (Vector3D<> (graspTargetFrame->getTransform (state).P () + Vector3D<> (0, 0, 0)),
-//                                               graspStyles[i]),
-//                                state);
-        
-//         collisionFreeSolutions = getCollisionFreeSolutions(state, graspTargetFrame, bottleFrame, robotUR5, wc);
-
-//         std::cout << "Current position of the robot vs object to be placed has: "
-//               << collisionFreeSolutions.size () << " collision-free inverse kinematics solutions!"
-//               << std::endl;
-//         for (unsigned int i = 0; i < collisionFreeSolutions.size (); i++) {
-//         robotUR5->setQ (collisionFreeSolutions[i], state);
-//         tStatePath.push_back (rw::trajectory::TimedState (time, state));
-//         time += 0.01;
-//         }
-//     }
-
-//     // Move bottleFrame back to the pick area (Position of this in TableFrame is approx.: (0 0.474 0.21)
-//     bottleFrame->setTransform (Transform3D<> (Vector3D<> (bottleFrame->getTransform (state).P () + Vector3D<> (-0.3, 0.948, 0)),
-//                                             RPY<> (0, 0, 90 * Deg2Rad)),
-//                             state);
-
-
-//     rw::loaders::PathLoader::storeTimedStatePath (*wc, tStatePath, "../visu.rwplay");
-
-//     ////////////////////////////////////////////////////////////////////////////////////////
 
     return 0;
 }
