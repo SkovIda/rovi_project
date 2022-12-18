@@ -16,6 +16,7 @@
 #include <numeric>
 
 #include <SamplePlugin.hpp>
+//#include <
 
 using namespace rw::kinematics;
 using namespace rw::math;
@@ -113,9 +114,10 @@ int main(int argc, char** argv)
     // }
     // RWS_END()
 
-    SamplePlugin roviplugin();
-    // roviplugin.SamplePlugin::initialize();
-    // roviplugin.open(wc);
+    SamplePlugin visionplugin();
+    //roviplugin.initialize();
+    visionplugin.open(wc);
+    // roviplugin
 
 
     std::cout << "\nPROGRAM DONE\n";

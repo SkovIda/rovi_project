@@ -1,0 +1,37 @@
+c++ -fPIC -shared -pthread -std=c++17 \
+	src/SamplePlugin.cpp \
+	-DQT_NO_VERSION_TAGGING \
+	-L/usr/lib/x86_64-linux-gnu/ \
+	-L/usr/lib/x86_64-linux-gnu/RobWork/rwplugins/ \
+	-L/usr/lib/x86_64-linux-gnu/RobWork/rwsplugins/ \
+	-lsdurws_robworkstudioapp \
+    -lsdurws \
+	-lsdurw_common \
+	-lsdurw_core \
+	-lsdurw_loaders \
+	-lsdurw_models \
+	-lsdurw_kinematics \
+    -lsdurw_pathplanners \
+    -lsdurw_simulation \
+    -lopencv_core \
+    -lopencv_imgproc \
+    -lopencv_video \
+    -lopencv_calib3d \
+    -lopencv_features2d \
+    -lopencv_objdetect \
+    -lopencv_highgui \
+    -lopencv_videoio \
+    -lopencv_imgcodecs \
+    -lQt6Core \
+    -lQt6Gui \
+	-I/usr/include/eigen3/ -I/usr/include/robwork-2.5 \
+    -I/usr/local/include/opencv4 \
+    -I/usr/include/opencv4 \
+    -IRoViPlugin_autogen/include/ \
+	-I/usr/include/robworkstudio-2.5 \
+	-I/usr/include/x86_64-linux-gnu/qt5/QtCore \
+    -I/usr/include/x86_64-linux-gnu/qt6/QtGui \
+	-I/usr/include/x86_64-linux-gnu/qt6 \
+	-I/usr/include/x86_64-linux-gnu/qt5/QtWidgets \
+    -I/usr/include/x86_64-linux-gnu/qt6/QtCore \
+	-o libRoViPlugin.so #> log 2>&1 
