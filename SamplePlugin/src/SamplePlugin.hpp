@@ -70,6 +70,10 @@ Q_PLUGIN_METADATA(IID "dk.sdu.mip.Robwork.RobWorkStudioPlugin/0.1" FILE "plugin.
 public:
     SamplePlugin();
     virtual ~SamplePlugin();
+    // {
+    //     delete _textureRender;
+    //     delete _bgRender;
+    // };
 
     virtual void open(rw::models::WorkCell* workcell);
 
