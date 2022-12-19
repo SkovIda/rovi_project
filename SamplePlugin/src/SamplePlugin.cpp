@@ -14,6 +14,7 @@ SamplePlugin::SamplePlugin () : RobWorkStudioPlugin ("SamplePluginUI", QIcon ((s
     connect (_btn_scan, SIGNAL (pressed ()), this, SLOT (btnPressed ()));
     connect (_btn0, SIGNAL (pressed ()), this, SLOT (btnPressed ()));
     connect (_btn1, SIGNAL (pressed ()), this, SLOT (btnPressed ()));
+    connect (_btn2, SIGNAL (pressed ()), this, SLOT (btnPressed ()));
     connect (_spinBox, SIGNAL (valueChanged (int)), this, SLOT (btnPressed ()));
 
     _framegrabber = NULL;
@@ -37,7 +38,6 @@ void SamplePlugin::initialize ()
         std::bind (&SamplePlugin::stateChangedListener, this, std::placeholders::_1), this);
 
     // Auto load workcell
-
     std::filesystem::path wc_path (__FILE__);
     wc_path          = wc_path.parent_path() / "../../WorkCell/Scene.wc.xml";
 	std::cout << "wc path: " << wc_path << std::endl;
@@ -166,6 +166,10 @@ void SamplePlugin::btnPressed ()
         }
         else
             _step = 0;
+    }
+    else if(obj == _btn2){
+        std::cout << "Button 2 pressed" << std::endl;
+
     }
     else if (obj == _spinBox) {
         log ().info () << "spin value:" << _spinBox->value () << "\n";
