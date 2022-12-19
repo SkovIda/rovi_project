@@ -39,7 +39,7 @@ void SamplePlugin::initialize ()
     // Auto load workcell
 
     std::filesystem::path wc_path (__FILE__);
-    wc_path          = wc_path.parent_path() / "../../Project_WorkCell/Scene.wc.xml";
+    wc_path          = wc_path.parent_path() / "../../WorkCell/Scene.wc.xml";
 	std::cout << "wc path: " << wc_path << std::endl;
     WorkCell::Ptr wc = WorkCellLoader::Factory::load (wc_path.string ());
     getRobWorkStudio ()->setWorkCell (wc);
