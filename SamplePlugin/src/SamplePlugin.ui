@@ -48,7 +48,7 @@
       <item>
        <widget class="QPushButton" name="_btn2">
         <property name="text">
-         <string>Test Button</string>
+         <string>Pose Estimation: Sparse Stereo</string>
         </property>
        </widget>
       </item>

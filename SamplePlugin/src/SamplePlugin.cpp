@@ -21,6 +21,14 @@ SamplePlugin::SamplePlugin () : RobWorkStudioPlugin ("SamplePluginUI", QIcon ((s
 
     _cameras    = {"Camera_Right", "Camera_Left"};
     _cameras25D = {"Scanner25D"};
+
+    std::filesystem::path bottle_img_path (__FILE__);
+    bottle_img_path = bottle_img_path.parent_path() / "../bottle_img.png";
+    _img_bottle = cv::imread(bottle_img_path);
+    if(_img_bottle.empty()){
+        std::cout << "COULD NOT LOAD TRAIN IMAGE: bottle_img.png" << std::endl;
+    }
+
 }
 
 SamplePlugin::~SamplePlugin ()
@@ -168,8 +176,8 @@ void SamplePlugin::btnPressed ()
             _step = 0;
     }
     else if(obj == _btn2){
-        std::cout << "Button 2 pressed" << std::endl;
-
+        std::cout << "Button 2 pressed = Pose Estimation: Sparse Stereo" << std::endl;
+        poseEstimationSparseStereo();
     }
     else if (obj == _spinBox) {
         log ().info () << "spin value:" << _spinBox->value () << "\n";
@@ -354,4 +362,79 @@ void SamplePlugin::printProjectionMatrix (std::string frameName)
             std::cout << H.e () << std::endl;
         }
     }
+}
+
+void SamplePlugin::poseEstimationSparseStereo()
+{
+    // // Show Bottle image in QLabel
+    // QImage img (_img_bottle.data, _img_bottle.cols, _img_bottle.rows, _img_bottle.step, QImage::Format_BGR888);
+    // QPixmap p         = QPixmap::fromImage (img);
+    // unsigned int maxW = 480;
+    // unsigned int maxH = 640;
+    // _label->setPixmap (p.scaled (maxW, maxH, Qt::KeepAspectRatio));
+    
+    if (_framegrabber != NULL) {
+        for (size_t i = 0; i < _cameras.size (); i++) {
+            // Get the image as a RW image
+            Frame* cameraFrame = _wc->findFrame (_cameras[i]);    // "Camera");
+            _framegrabber->grab (cameraFrame, _state);
+
+            const rw::sensor::Image* rw_image = &(_framegrabber->getImage ());
+
+            // Convert to OpenCV matrix.
+            cv::Mat image = cv::Mat (rw_image->getHeight (),
+                                     rw_image->getWidth (),
+                                     CV_8UC3,
+                                     (rw::sensor::Image*) rw_image->getImageData ());
+
+            // Convert to OpenCV image
+            Mat imflip, imflip_mat;
+            cv::flip (image, imflip, 1);
+            cv::cvtColor (imflip, imflip_mat, COLOR_RGB2BGR);
+
+            cv::imwrite (_cameras[i] + ".png", imflip_mat);
+
+            // // detecting keypoints
+            // SurfFeatureDetector detector(400);
+            // vector<KeyPoint> keypoints1, keypoints2;
+            // detector.detect(_img_bottle, keypoints1);
+            // detector.detect(image, keypoints2);
+
+            // // computing descriptors
+            // SurfDescriptorExtractor extractor;
+            // Mat descriptors1, descriptors2;
+            // extractor.compute(_img_bottle, keypoints1, descriptors1);
+            // extractor.compute(image, keypoints2, descriptors2);
+
+            // // matching descriptors
+            // BFMatcher matcher(NORM_L2);
+            // vector<DMatch> matches;
+            // matcher.match(descriptors1, descriptors2, matches);
+
+            // // drawing the results
+            // namedWindow("matches", 1);
+            // Mat img_matches;
+            // drawMatches(_img_bottle, keypoints1, image, keypoints2, matches, img_matches);
+
+            // cv::imwrite (_cameras[i] + "_matches.png", img_matches);
+
+            // Show in QLabel
+            QImage img (imflip.data, imflip.cols, imflip.rows, imflip.step, QImage::Format_RGB888);
+            QPixmap p         = QPixmap::fromImage (img);
+            unsigned int maxW = 480;
+            unsigned int maxH = 640;
+            _label->setPixmap (p.scaled (maxW, maxH, Qt::KeepAspectRatio));
+
+            // // Show in QLabel
+            // QImage img (imflip.data, imflip.cols, imflip.rows, imflip.step, QImage::Format_RGB888);
+            // QPixmap p         = QPixmap::fromImage (img);
+            // unsigned int maxW = 480;
+            // unsigned int maxH = 640;
+            // _label->setPixmap (p.scaled (maxW, maxH, Qt::KeepAspectRatio));
+        }
+    }
+    std::cout << "Camera_Right" << std::endl;
+    printProjectionMatrix ("Camera_Right");
+    std::cout << "Camera_Left" << std::endl;
+    printProjectionMatrix ("Camera_Left");
 }

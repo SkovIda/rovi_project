@@ -21,6 +21,7 @@
 
 // OpenCV 3
 #include <opencv2/opencv.hpp>
+#include <opencv2/core.hpp>
 
 // Qt
 #include <QTimer>
@@ -93,6 +94,8 @@ private slots:
     void createPathRRTConnect(Q from, Q to,  double extend, double maxTime);
 	void printProjectionMatrix(std::string frameName);
 
+    void poseEstimationSparseStereo();
+
 private:
     static cv::Mat toOpenCVImage(const rw::sensor::Image& img);
 
@@ -109,6 +112,15 @@ private:
     Device::Ptr _device;
     QPath _path;
     int _step;
+
+    Mat _img_bottle;
+
+    // vector<KeyPoint> _keypoints1, _keypoints2;
+    // DescriptorExtractor _extractor;
+    // Mat _descriptors1, _descriptors2;
+    // BFMatcher _matcher(NORM_L2);
+    // vector<DMatch> _matches;
+    // Mat _img_matches;
 
 };
 
