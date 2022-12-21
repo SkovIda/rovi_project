@@ -532,6 +532,5 @@ void SamplePlugin::testBottle3DPoseEstimationSparseStereo(std::string output_fil
     else{
         std::cout << "\nCOULD not find movable frame Bottle ... check model" << std::endl;
     }
-    
 
 }
