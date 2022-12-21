@@ -61,21 +61,31 @@
 	</Frame>
 
 	<!-- Cameras -->
-
-	<Frame name="Camera_Right" refframe="WORLD" type="Movable">
+	<!-- <Frame name="Camera_Right" refframe="WORLD" type="Movable">
 		<Pos>0 1.033 1.325</Pos>
-		<RPY>0 0 -25</RPY>
+		<RPY>0 0 -35</RPY>
 		<Property name="Camera" desc="[fovy,width,height]">50 640 480</Property>
 	</Frame>
 	<Frame name="Camera_Left" refframe="WORLD" type="Movable">
 		<Pos>0.2 1.033 1.325</Pos>
-		<RPY>0 0 -25</RPY>
+		<RPY>0 0 -35</RPY>
+		<Property name="Camera" desc="[fovy,width,height]">50 640 480</Property>
+	</Frame> -->
+
+	<Frame name="Camera_Right" refframe="WORLD" type="Movable">
+		<Pos>-0.05 0.474 0.925</Pos>
+		<RPY>0 0 0</RPY>
+		<Property name="Camera" desc="[fovy,width,height]">50 640 480</Property>
+	</Frame>
+	<Frame name="Camera_Left" refframe="WORLD" type="Movable">
+		<Pos>0.15 0.474 0.925</Pos>
+		<RPY>0 0 0</RPY>
 		<Property name="Camera" desc="[fovy,width,height]">50 640 480</Property>
 	</Frame>
 
 	<Frame name="Scanner25D" refframe="WORLD" type="Movable">
 		<Pos>0 1.033 1.325</Pos>
-		<RPY>0 0 -25</RPY>
+		<RPY>0 0 -35</RPY>
 		<Property name="Scanner25D" desc="[fovy,width,height]">50 640 480</Property>
 	</Frame>
 
