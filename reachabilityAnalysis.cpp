@@ -13,7 +13,7 @@ using namespace rw::math;
 
 /**
  * This code is heavily inspired/copied from the solution provided for Programming Exercise 5.
- * The parts, that were not copied from the solution for Programming Exercise 5, was by Ida Blirup Skov
+ * The parts, that were not copied from the solution for Programming Exercise 5, was written by Ida Blirup Skov
  */
 
 

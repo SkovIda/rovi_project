@@ -53,6 +53,13 @@
        </widget>
       </item>
       <item>
+       <widget class="QPushButton" name="_testSparseStereo3DPose">
+        <property name="text">
+         <string>Test Sparse Stereo Pose Estimation</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QSpinBox" name="_spinBox"/>
       </item>
       <item>

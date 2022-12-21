@@ -98,6 +98,7 @@ private slots:
 	void printProjectionMatrix(std::string frameName);
 
     void poseEstimationSparseStereo();
+    void testBottle3DPoseEstimationSparseStereo(std::string output_filename);
     //cv::Mat getProjectionMatrix(std::string frameName);
 
 private:
@@ -117,17 +118,22 @@ private:
     QPath _path;
     int _step;
 
-    Mat _img_bottle;
+    // Mat _img_bottle;
 
-    cv::Ptr<FeatureDetector> _detector;
-    cv::Ptr<DescriptorExtractor> _extractor;
-    vector<KeyPoint> _bottle_keypoints;
-    Mat _bottle_descriptors;
-    Mat _bottle_keypoint_image;
-    bool _cross_check_matches = true;
+    // cv::Ptr<FeatureDetector> _detector;
+    // cv::Ptr<DescriptorExtractor> _extractor;
+    // vector<KeyPoint> _bottle_keypoints;
+    // Mat _bottle_descriptors;
+    // Mat _bottle_keypoint_image;
+    // bool _cross_check_matches = true;
 
     Mat _proj_right;
     Mat _proj_left;
+
+    // // find relevant frames
+    MovableFrame::Ptr _bottleFrame;
+
+
     //BFMatcher _matcher;
 
     // vector<KeyPoint> _keypoints1, _keypoints2;
