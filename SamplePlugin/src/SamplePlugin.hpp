@@ -39,6 +39,7 @@
 #include <rw/loaders/WorkCellLoader.hpp>
 
 #include <functional>
+#include <random>
 
 
 using namespace rw::common;
@@ -97,12 +98,14 @@ private slots:
     void createPathRRTConnect(Q from, Q to,  double extend, double maxTime);
 	void printProjectionMatrix(std::string frameName);
 
+    //Mat addGaussianNoice(Mat& cam_img);
     Mat poseEstimationSparseStereo();
     void testBottle3DPoseEstimationSparseStereo(std::string output_filename);
     //cv::Mat getProjectionMatrix(std::string frameName);
 
 private:
     static cv::Mat toOpenCVImage(const rw::sensor::Image& img);
+    //int search_closest(const std::vector<double>& sorted_array, double x);
 
     QTimer* _timer;
     QTimer* _timer25D;
@@ -130,8 +133,11 @@ private:
     Mat _proj_right;
     Mat _proj_left;
 
-    // // find relevant frames
+    // Relevant frames
     MovableFrame::Ptr _bottleFrame;
+
+    // Used to add noise to camera images:
+    //double _sigma;
 
 
     //BFMatcher _matcher;

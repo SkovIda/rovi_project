@@ -54,6 +54,8 @@ SamplePlugin::SamplePlugin () : RobWorkStudioPlugin ("SamplePluginUI", QIcon ((s
     _proj_right = KA * H_camera_right;
     _proj_left = KA * H_camera_left;
 
+    // _sigma = 255.0*90.0/100.0;
+
 }
 
 SamplePlugin::~SamplePlugin ()
@@ -171,6 +173,32 @@ Mat SamplePlugin::toOpenCVImage (const Image& img)
     res.data = (uchar*) img.getImageData ();
     return res;
 }
+
+// int SamplePlugin::search_closest(const std::vector<double> &sorted_array, double x)
+// {
+//     // Index of value in sorted_array that is closest to x (sorted_array[index] >= x):
+//     auto iter_geq = std::lower_bound(
+//         sorted_array.begin(),
+//         sorted_array.end(),
+//         x
+//     );
+
+//     // Dont look for value left of index 0 if x is lower than lowest value in sorted_array:
+//     if (iter_geq == sorted_array.begin()) {
+//         return 0;
+//     }
+
+//     // Pointer too closest values:
+//     double a = *(iter_geq - 1);     // val < x
+//     double b = *(iter_geq);         // val >= x
+
+//     // Return index of value closest to x:
+//     if (fabs(x - a) < fabs(x - b)) {
+//         return iter_geq - sorted_array.begin() - 1;
+//     }
+
+//     return iter_geq - sorted_array.begin();
+// }
 
 void SamplePlugin::btnPressed ()
 {
@@ -397,6 +425,60 @@ void SamplePlugin::printProjectionMatrix (std::string frameName)
     }
 }
 
+// Mat SamplePlugin::addGaussianNoice(Mat& cam_img)
+// {
+//     cv::Mat imageCopy = cam_img.clone();
+//     std::cout << "\nsigma: " << _sigma << std::endl;
+//     int i = 0;
+//     std::vector<double> p;
+//     std::vector<double> p_cum;
+
+//     for(int k=-255; k < 255; k++)
+//     {
+//         double p_k = exp(-pow(k,2.0)/(2.0*pow(_sigma,2.0))) / (_sigma * sqrt(2.0*M_PI));
+//         p.push_back(p_k);
+//         if(i==0)
+//         {p_cum.push_back(p[i]);}
+//         else
+//         {p_cum.push_back(p_cum[i-1]+p[i]);}
+//         i++;
+//     }
+
+//     cv::Vec3b SNR_signal = 0;
+//     cv::Vec3b SNR_noise = 0;
+
+//     for(int i = 0; i < imageCopy.rows; i++)
+//     {
+//         for(int j = 0; j < imageCopy.cols; j++)
+//         {
+//             double random_number = (double)rand()/(double)RAND_MAX;
+//             int noise_val = -(256-1)+search_closest(p_cum,random_number);
+//             cv::Vec3b noise(noise_val,noise_val,noise_val);
+//             cv::Vec3b gaussian_noise = imageCopy.at<cv::Vec3b>(i,j) + noise;
+
+//             for(size_t k = 0; k < 3; k++)
+//             {
+//                 if(gaussian_noise[k] >= 255)
+//                 {
+//                     gaussian_noise[k] = 256-1;
+//                 }
+//                 else if(gaussian_noise[k] <= 0)
+//                 {
+//                     gaussian_noise[k] = 0;
+//                 }
+//             }
+
+//             imageCopy.at<cv::Vec3b>(i,j) = gaussian_noise;
+
+//             SNR_signal += imageCopy.at<cv::Vec3b>(i,j).mul(imageCopy.at<cv::Vec3b>(i,j));
+//             SNR_noise += gaussian_noise.mul(gaussian_noise);
+
+//         }
+//     }
+//     std::cout << SNR_signal.div(SNR_noise) << std::endl;
+
+//     return imageCopy;
+// }
 
 cv::Mat SamplePlugin::poseEstimationSparseStereo()
 {
@@ -419,7 +501,7 @@ cv::Mat SamplePlugin::poseEstimationSparseStereo()
     // _label->setPixmap (p.scaled (maxW, maxH, Qt::KeepAspectRatio));
 
     int gauss_kernel_size = 7;
-    int sigma = 1.5;
+    double sigma = 1.5;
 
     int min_radius = 15;
     int max_radius = 22;
@@ -450,6 +532,11 @@ cv::Mat SamplePlugin::poseEstimationSparseStereo()
             // Convert camera images to grayscale:
             cv::Mat camera_img_blurred_gray;
             cv::cvtColor(camera_images[i], camera_img_blurred_gray, cv::COLOR_BGR2GRAY);
+
+            // // add noise to camera image:
+            // //camera_img_blurred_gray = addGaussianNoice(camera_img_blurred_gray);
+            // addGaussianNoice(camera_img_blurred_gray);
+            // cv::imwrite (_cameras[i] + "_noice.png", camera_img_blurred_gray);
 
             // Blurr the images with a Gaussian filter:
             cv::GaussianBlur(camera_img_blurred_gray, camera_img_blurred_gray, cv::Size(gauss_kernel_size,gauss_kernel_size),sigma,sigma);
@@ -523,7 +610,7 @@ void SamplePlugin::testBottle3DPoseEstimationSparseStereo(std::string output_fil
     // Find the bottle frame: (written by Ida Blirup Skov)
     MovableFrame::Ptr _bottleFrame = _wc->findFrame< MovableFrame > ("Bottle");
     if (_bottleFrame != NULL) {
-        _bottleFrame->setTransform (Transform3D<> (Vector3D<> (_bottleFrame->getTransform (_state).P () + Vector3D<> (0.35, 0, 0)),
+        _bottleFrame->setTransform (Transform3D<> (Vector3D<> (_bottleFrame->getTransform (_state).P () + Vector3D<> (0.25, 0, 0)),
                                               RPY<> (0, 0, 90 * Deg2Rad)),
                                _state);
         getRobWorkStudio ()->setState (_state);
@@ -534,7 +621,11 @@ void SamplePlugin::testBottle3DPoseEstimationSparseStereo(std::string output_fil
     }
 
     cv::Mat pnts3Dtrue(1,1,CV_64FC4);
-    pnts3Dtrue.at<cv::Vec4d>(0)=cv::Vec4d(0.25,0.474,0.21,1.0);
+    // pnts3Dtrue.at<cv::Vec4d>(0)=cv::Vec4d(0.25,0.474,0.21,1.0);
+    pnts3Dtrue.at<double>(0,0)=0.25;
+    pnts3Dtrue.at<double>(1,0)=0.474;
+    pnts3Dtrue.at<double>(2,0)=0.21;
+    pnts3Dtrue.at<double>(3,0)=1.0;
 
     std::ofstream outfile;
     outfile.open("pose_estimation_sparse_stereo.csv");
@@ -543,7 +634,7 @@ void SamplePlugin::testBottle3DPoseEstimationSparseStereo(std::string output_fil
     double dx = -0.05;
     double sigma = 1.5;
 
-    for(int i = 0; i < 13; i++){
+    for(int i = 0; i < 9; i++){
         outfile << "\n" << sigma;
         // Move the bottle to a different position in the scene:
         _bottleFrame->setTransform (Transform3D<> (Vector3D<> (_bottleFrame->getTransform (_state).P () + Vector3D<> (dx, 0, 0)),
@@ -559,6 +650,10 @@ void SamplePlugin::testBottle3DPoseEstimationSparseStereo(std::string output_fil
         outfile << "," << pnts3Dtrue.at<double>(0,0)
                     << "," << pnts3Dtrue.at<double>(1,0)
                     << "," << pnts3Dtrue.at<double>(2,0);
+
+        std::cout << "\n" << pnts3Dtrue.at<double>(0,0)
+                    << "," << pnts3Dtrue.at<double>(1,0)
+                    << "," << pnts3Dtrue.at<double>(2,0) << std::endl;
 
         // Get center of the top of the bottle
         cv::Mat pnts3Dnorm(1,1,CV_64FC4);
