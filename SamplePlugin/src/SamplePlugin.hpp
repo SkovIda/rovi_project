@@ -137,6 +137,9 @@ private:
     MovableFrame::Ptr _bottleFrame;
 
     // Used to add noise to camera images:
+    bool _add_noise = false;
+    float _noise_mean = 10.0;
+    float _noise_sigma = 1.0;
     //double _sigma;
 
 
