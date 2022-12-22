@@ -594,6 +594,8 @@ cv::Mat SamplePlugin::poseEstimationSparseStereo()
 
             cv::imwrite (_cameras[i] + "_circles.png", camera_images[i]);
 
+            //_stereo_images.push_back(camera_images);
+
             // Show in QLabel
             QImage img (imflip.data, imflip.cols, imflip.rows, imflip.step, QImage::Format_RGB888);
             QPixmap p         = QPixmap::fromImage (img);
@@ -647,14 +649,14 @@ void SamplePlugin::testBottle3DPoseEstimationSparseStereo(std::string output_fil
     pnts3Dtrue.at<double>(3,0)=1.0;
 
     std::ofstream outfile;
-    outfile.open("pose_estimation_sparse_stereo.csv");
+    outfile.open("pose_estimation_sparse_stereo_2.csv");
     outfile << "sigma,x,y,z,x_est,y_est,z_est";
 
     double dx = -0.05;
     //double sigma = 1.5;
 
     // _add_noise = true;
-    std::vector<float> noise_sigmas = {0.5, 1.0, 1.5};
+    std::vector<float> noise_sigmas = {0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75};
 
     for(int i = 0; i < 9; i++){
         // Move the bottle to a different position in the scene:
@@ -665,7 +667,6 @@ void SamplePlugin::testBottle3DPoseEstimationSparseStereo(std::string output_fil
         // update the state in RobWorkStudio:
         getRobWorkStudio ()->setState (_state);
 
-        
         for(size_t sigma_idx=0; sigma_idx < noise_sigmas.size(); sigma_idx++){
             _noise_sigma = noise_sigmas[sigma_idx];
             outfile << "\n" << _noise_sigma;

@@ -140,6 +140,8 @@ private:
     bool _add_noise = false;
     float _noise_mean = 10.0;
     float _noise_sigma = 1.0;
+
+    //std::vector<std::vector<Mat>> _stereo_images;
     //double _sigma;
 
 
