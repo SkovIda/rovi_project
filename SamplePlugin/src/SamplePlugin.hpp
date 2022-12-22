@@ -97,7 +97,7 @@ private slots:
     void createPathRRTConnect(Q from, Q to,  double extend, double maxTime);
 	void printProjectionMatrix(std::string frameName);
 
-    void poseEstimationSparseStereo();
+    Mat poseEstimationSparseStereo();
     void testBottle3DPoseEstimationSparseStereo(std::string output_filename);
     //cv::Mat getProjectionMatrix(std::string frameName);
 

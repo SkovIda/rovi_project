@@ -40,7 +40,7 @@ SamplePlugin::SamplePlugin () : RobWorkStudioPlugin ("SamplePluginUI", QIcon ((s
     H_camera_right.at<cv::Vec4d>(1) = cv::Vec4d(-1.22465e-16, 1.0, 1.22465e-16, -0.474);
     H_camera_right.at<cv::Vec4d>(2) = cv::Vec4d(0.0, 1.22465e-16, -1.0, 0.925);
     H_camera_right.at<cv::Vec4d>(3) = cv::Vec4d(0.0, 0.0, 0.0, 1.0);
-    cv::print(H_camera_right);
+    //cv::print(H_camera_right);
 
     // Transformation matrix - Left Camera: (written by Ida Blirup Skov)
     cv::Mat H_camera_left(4,4,CV_64F);
@@ -48,7 +48,7 @@ SamplePlugin::SamplePlugin () : RobWorkStudioPlugin ("SamplePluginUI", QIcon ((s
     H_camera_left.at<cv::Vec4d>(1) = cv::Vec4d(-1.22465e-16, 1.0, 1.22465e-16, -0.474);
     H_camera_left.at<cv::Vec4d>(2) = cv::Vec4d(0.0, 1.22465e-16, -1.0, 0.925);
     H_camera_left.at<cv::Vec4d>(3) = cv::Vec4d(0.0, 0.0, 0.0, 1.0);
-    cv::print(H_camera_left);
+    //cv::print(H_camera_left);
 
     // calculate the projection matrices for the Right and Left camera: (written by Ida Blirup Skov)
     _proj_right = KA * H_camera_right;
@@ -398,7 +398,7 @@ void SamplePlugin::printProjectionMatrix (std::string frameName)
 }
 
 
-void SamplePlugin::poseEstimationSparseStereo()
+cv::Mat SamplePlugin::poseEstimationSparseStereo()
 {
     // // Show Bottle image in QLabel
     // QImage img (_img_bottle.data, _img_bottle.cols, _img_bottle.rows, _img_bottle.step, QImage::Format_BGR888);
@@ -514,23 +514,65 @@ void SamplePlugin::poseEstimationSparseStereo()
     triangulatePoints(_proj_left, _proj_right, camera_left_points, camera_right_points, pnts3D);
     std::cout << "Image points: " << camera_right_points  << "\t"  << camera_left_points << std::endl;
     std::cout << "Triangulated point (normalized): " << pnts3D / pnts3D.at<double>(3,0) << std::endl;
+
+    return pnts3D / pnts3D.at<double>(3,0);
 }
 
 void SamplePlugin::testBottle3DPoseEstimationSparseStereo(std::string output_filename)
 {
-    // // std::ofstream outfile;
-    // // Move the bottle to a different position in the scene:
-    // // Find the bottle frame: (written by Ida Blirup Skov)
+    // Find the bottle frame: (written by Ida Blirup Skov)
     MovableFrame::Ptr _bottleFrame = _wc->findFrame< MovableFrame > ("Bottle");
     if (_bottleFrame != NULL) {
-        _bottleFrame->setTransform (Transform3D<> (Vector3D<> (_bottleFrame->getTransform (_state).P () + Vector3D<> (0.05, 0, 0)),
+        _bottleFrame->setTransform (Transform3D<> (Vector3D<> (_bottleFrame->getTransform (_state).P () + Vector3D<> (0.35, 0, 0)),
                                               RPY<> (0, 0, 90 * Deg2Rad)),
                                _state);
-        std::cout << "\nMoved the bottle" << std::endl;
         getRobWorkStudio ()->setState (_state);
+        std::cout << "\nMoved the bottle" << std::endl;
     }
     else{
         std::cout << "\nCOULD not find movable frame Bottle ... check model" << std::endl;
     }
 
+    cv::Mat pnts3Dtrue(1,1,CV_64FC4);
+    pnts3Dtrue.at<cv::Vec4d>(0)=cv::Vec4d(0.25,0.474,0.21,1.0);
+
+    std::ofstream outfile;
+    outfile.open("pose_estimation_sparse_stereo.csv");
+    outfile << "sigma,x,y,z,x_est,y_est,z_est";
+
+    double dx = -0.05;
+    double sigma = 1.5;
+
+    for(int i = 0; i < 13; i++){
+        outfile << "\n" << sigma;
+        // Move the bottle to a different position in the scene:
+        _bottleFrame->setTransform (Transform3D<> (Vector3D<> (_bottleFrame->getTransform (_state).P () + Vector3D<> (dx, 0, 0)),
+                                              RPY<> (0, 0, 90 * Deg2Rad)),
+                               _state);
+        
+        //std::cout << "\nMoved the bottle" << std::endl;
+
+        // update the state in RobWorkStudio:
+        getRobWorkStudio ()->setState (_state);
+
+        pnts3Dtrue.at<double>(0,0) = pnts3Dtrue.at<double>(0,0)+dx;
+        outfile << "," << pnts3Dtrue.at<double>(0,0)
+                    << "," << pnts3Dtrue.at<double>(1,0)
+                    << "," << pnts3Dtrue.at<double>(2,0);
+
+        // Get center of the top of the bottle
+        cv::Mat pnts3Dnorm(1,1,CV_64FC4);
+        pnts3Dnorm = poseEstimationSparseStereo();
+        // std::cout << "Triangulated point (normalized): " << poseEstimationSparseStereo()<< std::endl;
+        // std::cout << "3D Point:\n\t" << pnts3Dnorm.at<double>(0,0)
+        //             << pnts3Dnorm.at<double>(1,0)
+        //             << pnts3Dnorm.at<double>(2,0)
+        //             << std::endl;
+
+        outfile  << "," << pnts3Dnorm.at<double>(0,0)
+                    << "," << pnts3Dnorm.at<double>(1,0)
+                    << "," << pnts3Dnorm.at<double>(2,0);
+        
+    }
+    outfile.close();
 }
