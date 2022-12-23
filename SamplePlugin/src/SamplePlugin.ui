@@ -60,6 +60,13 @@
        </widget>
       </item>
       <item>
+       <widget class="QPushButton" name="_RRTConnectPlanTrajectory">
+        <property name="text">
+         <string>Plan trajectory with RRT Connect</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QSpinBox" name="_spinBox"/>
       </item>
       <item>

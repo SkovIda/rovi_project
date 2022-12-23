@@ -2,6 +2,7 @@
 
 #include <filesystem>
 #include <fstream>
+#include <iostream>
 
 SamplePlugin::SamplePlugin () : RobWorkStudioPlugin ("SamplePluginUI", QIcon ((std::filesystem::path(__FILE__).parent_path()/"pa_icon.png").c_str()))
 {
@@ -17,6 +18,7 @@ SamplePlugin::SamplePlugin () : RobWorkStudioPlugin ("SamplePluginUI", QIcon ((s
     connect (_btn1, SIGNAL (pressed ()), this, SLOT (btnPressed ()));
     connect (_btn2, SIGNAL (pressed ()), this, SLOT (btnPressed ()));   // Written by Ida Blirup Skov
     connect (_testSparseStereo3DPose, SIGNAL (pressed ()), this, SLOT (btnPressed ()));   // Written by Ida Blirup Skov
+    connect (_RRTConnectPlanTrajectory, SIGNAL (pressed ()), this, SLOT (btnPressed ()));   // Written by Ida Blirup Skov
     connect (_spinBox, SIGNAL (valueChanged (int)), this, SLOT (btnPressed ()));
 
     _framegrabber = NULL;
@@ -62,8 +64,6 @@ SamplePlugin::SamplePlugin () : RobWorkStudioPlugin ("SamplePluginUI", QIcon ((s
 
     _add_noise = true;
     _noise_sigma = 1.0;
-
-    // _sigma = 255.0*90.0/100.0;
 
 }
 
@@ -243,11 +243,13 @@ void SamplePlugin::btnPressed ()
     }
     else if(obj == _testSparseStereo3DPose){
         std::cout << "Button Pressed: Test Sparse Stereo 3D Pose Estimation" << std::endl;
-        testBottle3DPoseEstimationSparseStereo("helhel.csv");
-        // if (!_timer->isActive ()) {
-        //     _timer->start (100);    // run 10 Hz
-        // }
-        // _step = 0;
+        std::cout << "\nEnter test number: ";
+        std::string input_test_no = "";
+        std::cin >> input_test_no;
+        testBottle3DPoseEstimationSparseStereo(input_test_no);
+    }
+    else if(obj == _RRTConnectPlanTrajectory){
+        std::cout << "Plan trajectory with RRT connect" << std::endl;
     }
     else if (obj == _spinBox) {
         log ().info () << "spin value:" << _spinBox->value () << "\n";
@@ -513,7 +515,7 @@ cv::Mat SamplePlugin::poseEstimationSparseStereo()
     double sigma = 1.5;
 
     int min_radius = 15;
-    int max_radius = 22;
+    int max_radius = 20;
     
     if (_framegrabber != NULL) {
         for (size_t i = 0; i < _cameras.size (); i++) {
@@ -546,6 +548,7 @@ cv::Mat SamplePlugin::poseEstimationSparseStereo()
 
             // Save images
             cv::imwrite (_cameras[i] + ".png", imflip_mat);
+            // cv::imwrite (_cameras[i] + "_no_noise_image.png", imflip_mat);
             camera_images.push_back(imflip_mat);
 
             // Convert camera images to grayscale:
@@ -593,6 +596,7 @@ cv::Mat SamplePlugin::poseEstimationSparseStereo()
             // }
 
             cv::imwrite (_cameras[i] + "_circles.png", camera_images[i]);
+            // cv::imwrite (_cameras[i] + "no_noise_circles.png", camera_images[i]);
 
             //_stereo_images.push_back(camera_images);
 
@@ -629,9 +633,10 @@ cv::Mat SamplePlugin::poseEstimationSparseStereo()
 void SamplePlugin::testBottle3DPoseEstimationSparseStereo(std::string output_filename)
 {
     // Find the bottle frame: (written by Ida Blirup Skov)
+    double x_pos = -0.1;
     MovableFrame::Ptr _bottleFrame = _wc->findFrame< MovableFrame > ("Bottle");
     if (_bottleFrame != NULL) {
-        _bottleFrame->setTransform (Transform3D<> (Vector3D<> (_bottleFrame->getTransform (_state).P () + Vector3D<> (0.25, 0, 0)),
+        _bottleFrame->setTransform (Transform3D<> (Vector3D<> (_bottleFrame->getTransform (_state).P () + Vector3D<> (x_pos, 0, 0)),
                                               RPY<> (0, 0, 90 * Deg2Rad)),
                                _state);
         getRobWorkStudio ()->setState (_state);
@@ -643,43 +648,52 @@ void SamplePlugin::testBottle3DPoseEstimationSparseStereo(std::string output_fil
 
     cv::Mat pnts3Dtrue(1,1,CV_64FC4);
     // pnts3Dtrue.at<cv::Vec4d>(0)=cv::Vec4d(0.25,0.474,0.21,1.0);
-    pnts3Dtrue.at<double>(0,0)=0.25;
+    pnts3Dtrue.at<double>(0,0)=x_pos;
+    // pnts3Dtrue.at<double>(0,0)=0.0;
     pnts3Dtrue.at<double>(1,0)=0.474;
     pnts3Dtrue.at<double>(2,0)=0.21;
     pnts3Dtrue.at<double>(3,0)=1.0;
 
     std::ofstream outfile;
-    outfile.open("pose_estimation_sparse_stereo_2.csv");
+    outfile.open("../../pose_estimation_sparse_stereo_test_data/bottle_xneg01_pose_estimation_sparse_stereo" + output_filename + ".csv");
     outfile << "sigma,x,y,z,x_est,y_est,z_est";
 
-    double dx = -0.05;
+    //double dx = -0.1;
+
     //double sigma = 1.5;
 
     // _add_noise = true;
-    std::vector<float> noise_sigmas = {0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75};
+    //std::vector<float> noise_sigmas = {0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75};
+    //std::vector<float> noise_sigmas = {0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0};
 
-    for(int i = 0; i < 9; i++){
-        // Move the bottle to a different position in the scene:
-        _bottleFrame->setTransform (Transform3D<> (Vector3D<> (_bottleFrame->getTransform (_state).P () + Vector3D<> (dx, 0, 0)),
-                                            RPY<> (0, 0, 90 * Deg2Rad)),
-                            _state);
+    //_add_noise = true;
+
+    for(int i = 0; i < 30; i++){
+        // // Move the bottle to a different position in the scene:
+        // _bottleFrame->setTransform (Transform3D<> (Vector3D<> (_bottleFrame->getTransform (_state).P () + Vector3D<> (dx, 0, 0)),
+        //                                     RPY<> (0, 0, 90 * Deg2Rad)),
+        //                     _state);
         
-        // update the state in RobWorkStudio:
-        getRobWorkStudio ()->setState (_state);
+        // // update the state in RobWorkStudio:
+        // getRobWorkStudio ()->setState (_state);
 
-        for(size_t sigma_idx=0; sigma_idx < noise_sigmas.size(); sigma_idx++){
-            _noise_sigma = noise_sigmas[sigma_idx];
+        // pnts3Dtrue.at<double>(0,0) = pnts3Dtrue.at<double>(0,0)+dx;
+        
+        //for(size_t sigma_idx=0; sigma_idx < noise_sigmas.size(); sigma_idx++){
+        float sigma_max = 10.0;
+        float sigma_step = 0.25;
+        for(float sigma_tmp = 0.25; sigma_tmp <= sigma_max; sigma_tmp+=sigma_step){
+            //_noise_sigma = noise_sigmas[sigma_idx];
+            _noise_sigma = sigma_tmp;
             outfile << "\n" << _noise_sigma;
             
-
-            pnts3Dtrue.at<double>(0,0) = pnts3Dtrue.at<double>(0,0)+dx;
             outfile << "," << pnts3Dtrue.at<double>(0,0)
                         << "," << pnts3Dtrue.at<double>(1,0)
                         << "," << pnts3Dtrue.at<double>(2,0);
 
-            std::cout << "\n" << pnts3Dtrue.at<double>(0,0)
-                        << "," << pnts3Dtrue.at<double>(1,0)
-                        << "," << pnts3Dtrue.at<double>(2,0) << std::endl;
+            // std::cout << "\n" << pnts3Dtrue.at<double>(0,0)
+            //             << "," << pnts3Dtrue.at<double>(1,0)
+            //             << "," << pnts3Dtrue.at<double>(2,0) << std::endl;
 
             // Get center of the top of the bottle
             cv::Mat pnts3Dnorm(1,1,CV_64FC4);
@@ -693,6 +707,8 @@ void SamplePlugin::testBottle3DPoseEstimationSparseStereo(std::string output_fil
             outfile  << "," << pnts3Dnorm.at<double>(0,0)
                         << "," << pnts3Dnorm.at<double>(1,0)
                         << "," << pnts3Dnorm.at<double>(2,0);
+
+            getRobWorkStudio ()->setState (_state);
         }
         // _noise_sigma = noise_sigmas[1];
         // outfile << "\n" << _noise_sigma;
