@@ -62,7 +62,8 @@ SamplePlugin::SamplePlugin () : RobWorkStudioPlugin ("SamplePluginUI", QIcon ((s
     _proj_right = KA * H_camera_right;
     _proj_left = KA * H_camera_left;
 
-    _add_noise = true;
+    // flags set to add/remove noise when testing the performance of the pose estimation with sparese stereo (written by Ida Blirup Skov)
+    _add_noise = false;
     _noise_sigma = 1.0;
 
 }
@@ -250,6 +251,14 @@ void SamplePlugin::btnPressed ()
     }
     else if(obj == _RRTConnectPlanTrajectory){
         std::cout << "Plan trajectory with RRT connect" << std::endl;
+        std::vector< Q > solutions = getConfigurations("GraspTarget", "GraspTCP");
+        _timer->stop ();
+        rw::math::Math::seed ();
+        double extend  = 0.05;
+        double maxTime = 60;
+        Q from (6, 1.571, -1.572, -1.572, -1.572, 1.571, 0);
+        //Q to (6, 1.847, -2.465, -1.602, -0.647, 1.571, 0);    // From pose estimation
+        createPathRRTConnect (from, solutions[0], extend, maxTime);
     }
     else if (obj == _spinBox) {
         log ().info () << "spin value:" << _spinBox->value () << "\n";
@@ -746,4 +755,51 @@ void SamplePlugin::testBottle3DPoseEstimationSparseStereo(std::string output_fil
         
     }
     outfile.close();
+}
+
+std::vector<Q> SamplePlugin::getConfigurations(const std::string nameGoal, const std::string nameTcp)
+{
+    // // Get, make and print name of frames
+    //const std::string robotName     = _device->getName ();
+    // _wc->findDevice ("UR-6-85-5-A");
+    rw::models::SerialDevice::Ptr robotUR5 = _wc->findDevice< rw::models::SerialDevice > ("UR-6-85-5-A");
+    if(robotUR5 == NULL)
+    {
+        std::cout << "\nCOULD NOT FIND DEVICE UR5" << std::endl;
+        return std::vector<Q>();
+    }
+    const std::string nameRobotBase = "UR-6-85-5-A.Base";
+    const std::string nameRobotTcp  = "UR-6-85-5-A.TCP";
+
+    // Find frames and check for existence
+    Frame* goal_f      = _wc->findFrame (nameGoal);
+    Frame* tcp_f       = _wc->findFrame (nameTcp);
+    Frame* robotBase_f = _wc->findFrame (nameRobotBase);
+    Frame* robotTcp_f  = _wc->findFrame (nameRobotTcp);
+    if (goal_f == NULL || tcp_f == NULL || robotBase_f == NULL || robotTcp_f == NULL) {
+        std::cout << " ALL FRAMES NOT FOUND:" << std::endl;
+        std::cout << " Found \"" << nameGoal << "\": " << (goal_f == NULL ? "NO!" : "YES!")
+                  << std::endl;
+        std::cout << " Found \"" << nameTcp << "\": " << (tcp_f == NULL ? "NO!" : "YES!")
+                  << std::endl;
+        std::cout << " Found \"" << nameRobotBase
+                  << "\": " << (robotBase_f == NULL ? "NO!" : "YES!") << std::endl;
+        std::cout << " Found \"" << nameRobotTcp
+                  << "\": " << (robotTcp_f == NULL ? "NO!" : "YES!") << std::endl;
+    }
+
+
+    // Make "helper" transformations
+    Transform3D<> baseTGoal    = Kinematics::frameTframe (robotBase_f, goal_f, _state);
+    Transform3D<> tcpTRobotTcp = Kinematics::frameTframe (tcp_f, robotTcp_f, _state);
+
+    // get grasp frame in robot tool frame
+    Transform3D<> targetAt = baseTGoal * tcpTRobotTcp;
+
+    rw::invkin::ClosedFormIKSolverUR::Ptr closedFormSovler =
+        rw::core::ownedPtr (new rw::invkin::ClosedFormIKSolverUR (robotUR5, _state));
+
+    closedFormSovler->solve (targetAt, _state);
+
+    return closedFormSovler->solve (targetAt, _state);
 }

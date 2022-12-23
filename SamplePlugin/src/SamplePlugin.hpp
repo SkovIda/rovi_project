@@ -103,6 +103,8 @@ private slots:
     void testBottle3DPoseEstimationSparseStereo(std::string output_filename);
     //cv::Mat getProjectionMatrix(std::string frameName);
 
+    std::vector<Q> getConfigurations(const std::string nameGoal, const std::string nameTcp);
+
 private:
     static cv::Mat toOpenCVImage(const rw::sensor::Image& img);
     //int search_closest(const std::vector<double>& sorted_array, double x);
